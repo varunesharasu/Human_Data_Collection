@@ -9,6 +9,7 @@ const sentences = [
 ];
 
 function App() {
+  const [userId, setUserId] = useState("");
   const [isRecording, setIsRecording] = useState(false);
   const [currentSentence, setCurrentSentence] = useState("");
   const [inputText, setInputText] = useState("");
@@ -17,44 +18,57 @@ function App() {
 
   const data = useRef({
     session_id: "",
-    user_id: "user_1",
+    user_id: "",
     mouse: [],
     clicks: [],
     scroll: [],
-    keyboard_timings: []
+    keyboard_timings: [],
+    target_sentence: "",
+    typed_text: ""
   });
 
   const lastMouseTime = useRef(0);
   const lastKeyTime = useRef(null);
+  const lastScrollTime = useRef(0);
 
   // ------------------ START SESSION ------------------
 
   const startSession = () => {
+    if (!userId.trim()) {
+      alert("Enter User ID first");
+      return;
+    }
+
     const randomSentence =
       sentences[Math.floor(Math.random() * sentences.length)];
 
-    sessionId.current = crypto.randomUUID();
+    const newSessionId = crypto.randomUUID();
+    sessionId.current = newSessionId;
 
     data.current = {
-      session_id: sessionId.current,
-      user_id: "user_1",
+      session_id: newSessionId,
+      user_id: userId,
       mouse: [],
       clicks: [],
       scroll: [],
-      keyboard_timings: []
+      keyboard_timings: [],
+      target_sentence: randomSentence,
+      typed_text: ""
     };
 
     setCurrentSentence(randomSentence);
     setInputText("");
     setIsRecording(true);
 
-    console.log("Session started:", sessionId.current);
+    console.log("Session started:", newSessionId);
   };
 
   // ------------------ STOP + SUBMIT ------------------
 
   const stopSession = async () => {
     setIsRecording(false);
+
+    data.current.typed_text = inputText;
 
     try {
       await fetch("http://localhost:5000/api/collect", {
@@ -67,7 +81,7 @@ function App() {
 
       console.log("Session saved");
     } catch (err) {
-      console.error(err);
+      console.error("Error saving session:", err);
     }
   };
 
@@ -101,10 +115,16 @@ function App() {
     const handleScroll = () => {
       if (!isRecording) return;
 
-      data.current.scroll.push({
-        y: window.scrollY,
-        t: Date.now()
-      });
+      const now = Date.now();
+
+      if (now - lastScrollTime.current > 150) {
+        data.current.scroll.push({
+          y: window.scrollY,
+          t: now
+        });
+
+        lastScrollTime.current = now;
+      }
     };
 
     const handleKeyDown = () => {
@@ -135,13 +155,22 @@ function App() {
   // ------------------ UI ------------------
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div style={{ height: "2000px", padding: "20px" }}>
       <h2>Behavior Data Collection</h2>
 
       {!isRecording && (
-        <button onClick={startSession}>
-          Start New Session
-        </button>
+        <>
+          <input
+            placeholder="Enter User ID (e.g. user_1)"
+            value={userId}
+            onChange={(e) => setUserId(e.target.value)}
+            style={{ marginRight: "10px", padding: "5px" }}
+          />
+
+          <button onClick={startSession}>
+            Start New Session
+          </button>
+        </>
       )}
 
       {isRecording && (
@@ -153,7 +182,7 @@ function App() {
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             rows={4}
-            cols={50}
+            cols={60}
           />
 
           <br /><br />
