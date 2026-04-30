@@ -1,40 +1,50 @@
 const fs = require("fs");
 
+// -------- CONFIG --------
+const NUM_SAMPLES = 200; // 👈 change this to 150 / 300 / 500 anytime
+
+// -------- UTILS --------
 function randomBetween(min, max) {
   return Math.random() * (max - min) + min;
 }
 
+function randomInt(min, max) {
+  return Math.floor(randomBetween(min, max));
+}
+
+// -------- BOT SAMPLE --------
 function generateBotSample(id) {
   return {
     session_id: `bot_${id}`,
     user_id: "bot",
 
-    // Mouse (bots are smooth + fast)
-    avgVelocity: randomBetween(1.5, 3.5),
-    maxVelocity: randomBetween(3, 6),
-    totalDistance: randomBetween(800, 1500),
+    // Mouse: smooth + fast
+    avgVelocity: randomBetween(1.8, 3.8),
+    maxVelocity: randomBetween(3.5, 6.5),
+    totalDistance: randomBetween(800, 1600),
 
-    // Keyboard (very consistent)
-    avgTyping: randomBetween(80, 150),
-    typingStd: randomBetween(5, 30),
-    pauseCount: Math.floor(randomBetween(0, 2)),
+    // Keyboard: consistent, low variance
+    avgTyping: randomBetween(70, 160),
+    typingStd: randomBetween(5, 25),
+    pauseCount: randomInt(0, 2),
 
-    // Scroll (linear behavior)
-    scrollDistance: randomBetween(500, 1500),
-    scrollChanges: Math.floor(randomBetween(0, 1)),
+    // Scroll: linear, minimal direction change
+    scrollDistance: randomBetween(400, 1600),
+    scrollChanges: randomInt(0, 2),
 
     // Clicks
-    clickCount: Math.floor(randomBetween(1, 3)),
+    clickCount: randomInt(1, 3),
 
-    // Always perfect typing
+    // Bots are always perfect
     accuracy: 1
   };
 }
 
+// -------- MAIN --------
 function run() {
   const samples = [];
 
-  for (let i = 0; i < 50; i++) {
+  for (let i = 0; i < NUM_SAMPLES; i++) {
     samples.push(generateBotSample(i));
   }
 
@@ -49,7 +59,7 @@ function run() {
 
   fs.writeFileSync("bot_features.csv", csv);
 
-  console.log("✅ bot_features.csv generated");
+  console.log(`✅ bot_features.csv generated with ${NUM_SAMPLES} samples`);
 }
 
 run();
