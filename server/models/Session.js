@@ -1,7 +1,11 @@
 const mongoose = require("mongoose");
 
 const sessionSchema = new mongoose.Schema({
-  session_id: String,
+  session_id: {
+    type: String,
+    required: true,
+    index: true
+  },
 
   mouse: [
     {
