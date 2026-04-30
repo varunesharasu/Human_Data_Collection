@@ -1,12 +1,23 @@
 import { useEffect, useRef, useState } from "react";
 
-const sentences = [
-  "The quick brown fox jumps over the lazy dog",
-  "Machine learning models require good data",
-  "Typing speed varies from person to person",
-  "Behavioral patterns help identify users",
-  "Data collection must respect privacy rules"
-];
+// -------- RANDOM SENTENCE GENERATOR --------
+function generateRandomSentence() {
+  const subjects = ["AI systems", "Users", "Developers", "Models", "Applications"];
+  const verbs = ["analyze", "improve", "optimize", "transform", "observe"];
+  const objects = [
+    "behavior patterns",
+    "data pipelines",
+    "user interactions",
+    "system performance",
+    "learning models"
+  ];
+
+  const s = subjects[Math.floor(Math.random() * subjects.length)];
+  const v = verbs[Math.floor(Math.random() * verbs.length)];
+  const o = objects[Math.floor(Math.random() * objects.length)];
+
+  return `${s} ${v} ${o} effectively.`;
+}
 
 function App() {
   const [userId, setUserId] = useState("");
@@ -31,18 +42,16 @@ function App() {
   const lastKeyTime = useRef(null);
   const lastScrollTime = useRef(0);
 
-  // ------------------ START SESSION ------------------
-
+  // -------- START SESSION --------
   const startSession = () => {
     if (!userId.trim()) {
       alert("Enter User ID first");
       return;
     }
 
-    const randomSentence =
-      sentences[Math.floor(Math.random() * sentences.length)];
-
+    const randomSentence = generateRandomSentence();
     const newSessionId = crypto.randomUUID();
+
     sessionId.current = newSessionId;
 
     data.current = {
@@ -63,8 +72,7 @@ function App() {
     console.log("Session started:", newSessionId);
   };
 
-  // ------------------ STOP + SUBMIT ------------------
-
+  // -------- STOP + SUBMIT --------
   const stopSession = async () => {
     setIsRecording(false);
 
@@ -85,8 +93,7 @@ function App() {
     }
   };
 
-  // ------------------ TRACKING ------------------
-
+  // -------- TRACKING --------
   useEffect(() => {
     const handleMouseMove = (e) => {
       if (!isRecording) return;
@@ -131,11 +138,16 @@ function App() {
       if (!isRecording) return;
 
       const now = Date.now();
+
       if (lastKeyTime.current !== null) {
-        data.current.keyboard_timings.push(
-          now - lastKeyTime.current
-        );
+        let delta = now - lastKeyTime.current;
+
+        // Cap extreme pauses (important)
+        if (delta > 5000) delta = 5000;
+
+        data.current.keyboard_timings.push(delta);
       }
+
       lastKeyTime.current = now;
     };
 
@@ -152,8 +164,7 @@ function App() {
     };
   }, [isRecording]);
 
-  // ------------------ UI ------------------
-
+  // -------- UI --------
   return (
     <div style={{ height: "2000px", padding: "20px" }}>
       <h2>Behavior Data Collection</h2>
@@ -176,7 +187,9 @@ function App() {
       {isRecording && (
         <>
           <p><b>Type this sentence:</b></p>
-          <p style={{ color: "blue" }}>{currentSentence}</p>
+          <p style={{ color: "blue", fontSize: "18px" }}>
+            {currentSentence}
+          </p>
 
           <textarea
             value={inputText}
@@ -185,9 +198,27 @@ function App() {
             cols={60}
           />
 
-          <br /><br />
+          {/* Spacer for scroll testing */}
+          <div style={{ height: "1200px" }}></div>
 
-          <button onClick={stopSession}>
+          {/* Fixed Submit Button */}
+          <button
+            onClick={stopSession}
+            style={{
+              position: "fixed",
+              bottom: "20px",
+              left: "50%",
+              transform: "translateX(-50%)",
+              padding: "12px 20px",
+              fontSize: "16px",
+              backgroundColor: "#007bff",
+              color: "white",
+              border: "none",
+              borderRadius: "8px",
+              cursor: "pointer",
+              zIndex: 1000
+            }}
+          >
             Submit & Stop
           </button>
         </>
