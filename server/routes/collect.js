@@ -6,38 +6,53 @@ router.post("/", async (req, res) => {
   try {
     const {
       session_id,
+      user_id,
       mouse,
       clicks,
       scroll,
-      keyboard_timings
+      keyboard_timings,
+      target_sentence,
+      typed_text
     } = req.body;
 
-    if (!session_id) {
-      return res.status(400).json({ error: "Missing session_id" });
+    if (!session_id || !user_id) {
+      return res.status(400).json({
+        error: "Missing session_id or user_id"
+      });
     }
 
-    await Session.updateOne(
+    // Save full session (overwrite if exists)
+    const session = await Session.findOneAndUpdate(
       { session_id },
       {
-        $push: {
-          mouse: { $each: mouse || [] },
-          clicks: { $each: clicks || [] },
-          scroll: { $each: scroll || [] },
-          keyboard_timings: { $each: keyboard_timings || [] }
-        }
+        session_id,
+        user_id,
+        target_sentence,
+        typed_text,
+        mouse: mouse || [],
+        clicks: clicks || [],
+        scroll: scroll || [],
+        keyboard_timings: keyboard_timings || []
       },
-      { upsert: true }
+      {
+        upsert: true,
+        new: true,
+        setDefaultsOnInsert: true
+      }
     );
 
-    console.log(
-      `Session ${session_id} | mouse: ${mouse?.length || 0}`
-    );
+    console.log(`Saved session: ${session_id}`);
 
-    res.status(200).json({ success: true });
+    res.status(200).json({
+      success: true,
+      session_id
+    });
 
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Server error" });
+    res.status(500).json({
+      error: "Server error"
+    });
   }
 });
 
