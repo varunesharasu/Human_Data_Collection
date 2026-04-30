@@ -15,7 +15,7 @@ app.use(express.json({ limit: "10mb" }));
 // Routes
 app.use("/api/collect", require("./routes/collect"));
 
-// MongoDB
+// DB Connection
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
     console.log("MongoDB connected");
@@ -24,4 +24,4 @@ mongoose.connect(process.env.MONGO_URI)
       console.log("Server running on port 5000");
     });
   })
-  .catch(err => console.log(err));
+  .catch(err => console.error(err));
